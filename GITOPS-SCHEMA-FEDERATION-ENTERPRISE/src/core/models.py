@@ -35,13 +35,25 @@ class SchemaFormat(Enum):
 
 
 class CompatibilityMode(Enum):
-    """Schema compatibility modes."""
+    """
+    Schema compatibility modes per Confluent Schema Registry specification.
+
+    Modes:
+    - NONE: No compatibility checking
+    - BACKWARD: New schema can read old data (last version)
+    - BACKWARD_TRANSITIVE: New schema can read old data (all versions)
+    - FORWARD: Old schema can read new data (last version)
+    - FORWARD_TRANSITIVE: Old schema can read new data (all versions)
+    - FULL: Both BACKWARD and FORWARD (last version)
+    - FULL_TRANSITIVE: Both BACKWARD_TRANSITIVE and FORWARD_TRANSITIVE (all versions)
+
+    Note: FORWARD_FULL is not a valid mode. Use FULL_TRANSITIVE instead.
+    """
     NONE = "NONE"
     BACKWARD = "BACKWARD"
     BACKWARD_TRANSITIVE = "BACKWARD_TRANSITIVE"
     FORWARD = "FORWARD"
     FORWARD_TRANSITIVE = "FORWARD_TRANSITIVE"
-    FORWARD_FULL = "FORWARD_FULL"
     FULL = "FULL"
     FULL_TRANSITIVE = "FULL_TRANSITIVE"
 

@@ -1,14 +1,21 @@
-# Migration von FORWARD_TRANSITIVE auf FORWARD_FULL
+# Migration von FORWARD_TRANSITIVE auf FULL_TRANSITIVE
+
+> **⚠️ WICHTIGE KORREKTUR:**
+> **"FORWARD_FULL" ist kein gültiger Confluent Schema Registry Kompatibilitätsmodus.**
+>
+> Der korrekte Modus für maximale Sicherheit ist **FULL_TRANSITIVE**.
+>
+> Diese Anleitung wurde aktualisiert, um die korrekte Terminologie zu verwenden.
 
 ## Übersicht
 
-Diese Anleitung beschreibt den sicheren Wechsel von `FORWARD_TRANSITIVE` auf `FORWARD_FULL` Kompatibilitätsmodus in der Confluent Schema Registry.
+Diese Anleitung beschreibt den sicheren Wechsel von `FORWARD_TRANSITIVE` auf `FULL_TRANSITIVE` Kompatibilitätsmodus in der Confluent Schema Registry.
 
-**Ziel:** Maximale Sicherheit bei Schema-Kompatibilitäten durch die strengste Forward-Kompatibilitätsstrategie.
+**Ziel:** Maximale Sicherheit bei Schema-Kompatibilitäten durch den strengsten Kompatibilitätsmodus (bidirektional + transitiv).
 
 ## Inhaltsverzeichnis
 
-- [Unterschied zwischen FORWARD_TRANSITIVE und FORWARD_FULL](#unterschied-zwischen-forward_transitive-und-forward_full)
+- [Unterschied zwischen FORWARD_TRANSITIVE und FULL_TRANSITIVE](#unterschied-zwischen-forward_transitive-und-full_transitive)
 - [Risiken und Empfehlungen](#risiken-und-empfehlungen)
 - [Migrationsstrategie](#migrationsstrategie)
 - [Verwendung der Scripts](#verwendung-der-scripts)
@@ -16,25 +23,27 @@ Diese Anleitung beschreibt den sicheren Wechsel von `FORWARD_TRANSITIVE` auf `FO
 
 ---
 
-## Unterschied zwischen FORWARD_TRANSITIVE und FORWARD_FULL
+## Unterschied zwischen FORWARD_TRANSITIVE und FULL_TRANSITIVE
 
 ### FORWARD_TRANSITIVE
 - **Regel:** Neue Schemas müssen vorwärts-kompatibel mit allen früheren Versionen sein
 - **Fokus:** Consumer der Zukunft können alte Daten lesen
+- **Prüfung:** Nur vorwärts (alte Schemas lesen neue Daten)
 - **Anwendungsfall:** Standard-Forward-Kompatibilität mit guter Flexibilität
 
-### FORWARD_FULL
+### FULL_TRANSITIVE ⭐ (Empfohlen)
 - **Regel:** Neue Schemas müssen **vorwärts UND rückwärts** kompatibel mit allen früheren Versionen sein
 - **Fokus:** Maximale Sicherheit - alte Producer UND alte Consumer funktionieren weiterhin
+- **Prüfung:** Bidirektional + transitiv (BACKWARD_TRANSITIVE + FORWARD_TRANSITIVE)
 - **Anwendungsfall:** Kritische Topics, bei denen absolute Kompatibilität erforderlich ist
 
-**Wichtig:** FORWARD_FULL ist die **strengste Variante** für Forward-Strategien und verhindert effektiv disruptive Änderungen.
+**Wichtig:** FULL_TRANSITIVE ist der **strengste Kompatibilitätsmodus** in Confluent Schema Registry und verhindert effektiv disruptive Änderungen.
 
 ---
 
 ## Risiken und Empfehlungen
 
-### ✅ Darf man einfach von FORWARD_TRANSITIVE auf FORWARD_FULL wechseln?
+### ✅ Darf man einfach von FORWARD_TRANSITIVE auf FULL_TRANSITIVE wechseln?
 
 **Ja - aber mit Vorsicht!**
 
@@ -65,7 +74,7 @@ Wenn es in alten Versionen Änderungen gab, die **nicht rückwärts-kompatibel**
 ```
 Während der Migration    → FORWARD_TRANSITIVE beibehalten (flexibler)
 Nach stabiler Migration  → Review der vorhandenen Schemas
-Dann erst umschalten    → Auf FORWARD_FULL hochschalten
+Dann erst umschalten    → Auf FULL_TRANSITIVE hochschalten
 ```
 
 **Vorteile:**
@@ -91,7 +100,7 @@ Dann erst umschalten    → Auf FORWARD_FULL hochschalten
 
 #### Für neue Topics
 
-✅ **Ja, das ist der beste Ort, um FORWARD_FULL standardmäßig zu aktivieren.**
+✅ **Ja, das ist der beste Ort, um FULL_TRANSITIVE standardmäßig zu aktivieren.**
 
 **Vorteile:**
 - Keine Legacy-Altlasten
@@ -104,7 +113,7 @@ Sie können problemlos eine **gemischte Welt** haben:
 
 | Topic-Typ | Empfohlene Strategie | Begründung |
 |-----------|---------------------|------------|
-| Kritische Business-Topics | `FORWARD_FULL` | Maximale Sicherheit, keine Ausfälle |
+| Kritische Business-Topics | `FULL_TRANSITIVE` | Maximale Sicherheit, keine Ausfälle |
 | Interne/Development-Topics | `FORWARD_TRANSITIVE` | Mehr Flexibilität bei der Entwicklung |
 | Volatile/Experimental Topics | `FORWARD` | Schnelle Iteration möglich |
 
@@ -129,7 +138,7 @@ SCHEMA_REGISTRY_URL=http://schema-registry:8081 \
 - Prüft `<topic>-key` und `<topic>-value` Subjects
 - Testet alle älteren Versionen gegen die neueste Version
 - Gibt klare OK/FAILED Meldungen aus
-- Exit Code 0 = sicher für FORWARD_FULL
+- Exit Code 0 = sicher für FULL_TRANSITIVE
 - Exit Code 2 = nicht kompatibel
 
 ### Script #2: Alle Topics prüfen
@@ -183,14 +192,14 @@ confluent schema-registry compatibility test \
 **Global setzen:**
 ```bash
 curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-  --data '{"compatibility": "FORWARD_FULL"}' \
+  --data '{"compatibility": "FULL_TRANSITIVE"}' \
   http://schema-registry:8081/config
 ```
 
 **Pro Subject setzen:**
 ```bash
 curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-  --data '{"compatibility": "FORWARD_FULL"}' \
+  --data '{"compatibility": "FULL_TRANSITIVE"}' \
   http://schema-registry:8081/config/my-topic-value
 ```
 
@@ -200,7 +209,7 @@ curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 
 **Test-Deployment:**
 ```bash
-# Schema registrieren (wird validiert gegen FORWARD_FULL)
+# Schema registrieren (wird validiert gegen FULL_TRANSITIVE)
 curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
   --data @new-schema.json \
   http://schema-registry:8081/subjects/my-topic-value/versions
@@ -238,7 +247,7 @@ curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 
 - **Nach der Migration** umstellen
 - **Schemas vorher prüfen** mit den bereitgestellten Scripts
-- **Für neue Topics** standardmäßig FORWARD_FULL aktivieren
+- **Für neue Topics** standardmäßig FULL_TRANSITIVE aktivieren
 - **Gemischte Strategie** je nach Topic-Kritikalität verwenden
 - **Rollback-Plan** bereithalten
 - **Erstes Schema nach Umstellung bewusst testen**
