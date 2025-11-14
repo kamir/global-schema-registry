@@ -31,8 +31,11 @@ The **Enterprise Edition** extends the core GitOps Schema Federation Manager wit
 
 | Document | Description |
 |----------|-------------|
+| **[GETTING_STARTED.md](./GETTING_STARTED.md)** | **⭐ Start here! Quick 15-minute setup guide** |
+| [IMPLEMENTATION_README.md](./IMPLEMENTATION_README.md) | Multi-backend API implementation guide |
 | [enterprise-features.md](./enterprise-features.md) | Complete feature specification (87 pages) |
 | [DEMO-SCENARIO.md](./DEMO-SCENARIO.md) | 30-minute interactive demo guide |
+| [architecture/](./architecture/) | Multi-backend architecture and plugin specs |
 | [docker/](./docker/) | Docker Compose setup for full environment |
 | [importers/](./importers/) | Unity Catalog and other platform importers |
 | [tests/](./tests/) | Comprehensive integration tests |

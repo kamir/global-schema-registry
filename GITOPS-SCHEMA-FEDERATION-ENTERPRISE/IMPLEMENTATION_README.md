@@ -4,6 +4,10 @@
 **Date:** 2025-11-14
 **Status:** ✅ **IMPLEMENTED** - Confluent SR & Unity Catalog
 
+> **🚀 New User?** Start with **[GETTING_STARTED.md](./GETTING_STARTED.md)** for a quick 15-minute setup guide!
+>
+> This document contains the complete technical implementation reference.
+
 ---
 
 ## 🎉 What's Been Implemented
