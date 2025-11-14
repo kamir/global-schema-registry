@@ -3,16 +3,19 @@
 ################################################################################
 # check_all_topics_compatibility.sh
 #
-# Prüft alle Subjects in der Schema Registry auf FORWARD_FULL Kompatibilität
+# Prüft alle Subjects in der Schema Registry auf FULL_TRANSITIVE Kompatibilität
 # und erstellt einen detaillierten CSV-Report
+#
+# WICHTIG: FORWARD_FULL ist kein gültiger Modus! Verwendet FULL_TRANSITIVE.
 #
 # Verwendung:
 #   SCHEMA_REGISTRY_URL=http://localhost:8081 \
+#   TARGET_MODE=FULL_TRANSITIVE \
 #   REPORT_FILE=report.csv \
 #   ./check_all_topics_compatibility.sh
 #
 # Exit Codes:
-#   0 - Alle Subjects sind kompatibel für FORWARD_FULL
+#   0 - Alle Subjects sind kompatibel für den Ziel-Modus
 #   1 - Fehler bei der Ausführung
 #   2 - Mindestens ein Subject ist NICHT kompatibel
 ################################################################################
@@ -21,7 +24,8 @@ set -euo pipefail
 
 # Konfiguration
 SCHEMA_REGISTRY_URL="${SCHEMA_REGISTRY_URL:-http://localhost:8081}"
-REPORT_FILE="${REPORT_FILE:-schema_full_compatibility_report.csv}"
+TARGET_MODE="${TARGET_MODE:-FULL_TRANSITIVE}"
+REPORT_FILE="${REPORT_FILE:-schema_${TARGET_MODE}_compatibility_report.csv}"
 
 # Farben für Output
 RED='\033[0;31m'
@@ -60,8 +64,9 @@ fi
 
 # Header
 echo "================================================================"
-log_info "Schema Registry Full Compatibility Check"
+log_info "Schema Registry Compatibility Check"
 log_info "Schema Registry URL: $SCHEMA_REGISTRY_URL"
+log_info "Target Mode: $TARGET_MODE"
 log_info "Writing report: $REPORT_FILE"
 echo "================================================================"
 echo ""
@@ -209,14 +214,14 @@ echo -e "Incompatible subjects:  ${RED}$incompatible_subjects${NC}"
 echo ""
 
 if [ "$OVERALL_OK" = true ]; then
-    echo -e "${GREEN}✔ All subjects are safe for FORWARD_FULL${NC}"
+    echo -e "${GREEN}✔ All subjects are safe for ${TARGET_MODE}${NC}"
     echo ""
     echo "Next steps:"
     echo "  1. Review the detailed report: $REPORT_FILE"
-    echo "  2. Enable FORWARD_FULL globally:"
+    echo "  2. Enable ${TARGET_MODE} globally:"
     echo ""
     echo "     curl -X PUT -H 'Content-Type: application/vnd.schemaregistry.v1+json' \\"
-    echo "       --data '{\"compatibility\": \"FORWARD_FULL\"}' \\"
+    echo "       --data '{\"compatibility\": \"${TARGET_MODE}\"}' \\"
     echo "       ${SCHEMA_REGISTRY_URL}/config"
     echo ""
 else
@@ -236,10 +241,10 @@ else
     echo "     b) Keep subject on FORWARD_TRANSITIVE"
     echo "     c) Accept that future updates may be rejected"
     echo ""
-    echo "  3. Enable FORWARD_FULL only for compatible subjects:"
+    echo "  3. Enable ${TARGET_MODE} only for compatible subjects:"
     echo ""
     echo "     curl -X PUT -H 'Content-Type: application/vnd.schemaregistry.v1+json' \\"
-    echo "       --data '{\"compatibility\": \"FORWARD_FULL\"}' \\"
+    echo "       --data '{\"compatibility\": \"${TARGET_MODE}\"}' \\"
     echo "       ${SCHEMA_REGISTRY_URL}/config/<subject-name>"
     echo ""
 fi
