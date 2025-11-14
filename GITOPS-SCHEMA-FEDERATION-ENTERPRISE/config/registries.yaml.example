@@ -1,0 +1,71 @@
+# Example configuration for schema registries
+# Copy this file to registries.yaml and customize for your environment
+
+registries:
+  # Confluent Schema Registry (Kafka)
+  - id: prod-confluent-us-west
+    type: confluent
+    enabled: true
+    url: https://schema-registry.us-west-2.aws.confluent.cloud
+    auth:
+      username: ${CONFLUENT_SR_KEY}  # API Key
+      password: ${CONFLUENT_SR_SECRET}  # API Secret
+    ssl_config:
+      verify: true
+      # cert_path: /path/to/cert.pem  # Optional
+    timeout: 30
+    max_retries: 3
+    metadata:
+      region: us-west-2
+      environment: production
+      owner: platform-team@company.com
+
+  # Unity Catalog (Databricks)
+  - id: prod-unity-catalog
+    type: unity_catalog
+    enabled: true
+    url: https://workspace.cloud.databricks.com
+    auth:
+      token: ${DATABRICKS_TOKEN}  # Personal Access Token
+    timeout: 30
+    max_retries: 3
+    metadata:
+      catalog: main
+      cloud: aws
+      region: us-west-2
+      environment: production
+      workspace_id: ${DATABRICKS_WORKSPACE_ID}
+
+  # Development Confluent SR
+  - id: dev-confluent-local
+    type: confluent
+    enabled: true
+    url: http://localhost:8081
+    auth: {}  # No auth for local development
+    ssl_config:
+      verify: false
+    timeout: 10
+    max_retries: 1
+    metadata:
+      environment: development
+
+  # Staging Unity Catalog
+  - id: staging-unity-catalog
+    type: unity_catalog
+    enabled: false  # Disabled by default
+    url: https://staging-workspace.cloud.databricks.com
+    auth:
+      token: ${DATABRICKS_STAGING_TOKEN}
+    metadata:
+      catalog: staging
+      environment: staging
+
+# Global settings
+global:
+  log_level: INFO
+  api_host: 0.0.0.0
+  api_port: 8000
+  enable_cors: true
+  cors_origins:
+    - http://localhost:3000
+    - https://schema-portal.company.com
